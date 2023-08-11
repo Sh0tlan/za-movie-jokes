@@ -1,18 +1,46 @@
 import { MOVIEDB_IMAGES_URL } from "src/common/constants";
 import MovieCard from "./MovieCard";
-import { Heading, SimpleGrid } from "@chakra-ui/layout";
-import { useSelector } from "react-redux";
-import { selectAllMovies } from "./moviesSlice";
+import { Heading, SimpleGrid, Flex } from "@chakra-ui/layout";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchMovies,
+  selectAllMovies,
+  selectMoviesError,
+  selectMoviesStatus,
+} from "./moviesSlice";
+import { Spinner, useToast } from "@chakra-ui/react";
+import { useEffect } from "react";
 
 function MovieList() {
+  const dispatch = useDispatch();
+  const toast = useToast();
   const movies = useSelector(selectAllMovies);
-  console.log(movies);
+  const moviesStatus = useSelector(selectMoviesStatus);
+  const moviesError = useSelector(selectMoviesError);
 
-  return (
-    <>
-      <Heading textAlign="center" size="xl" mb={4}>
-        Trending Movies
-      </Heading>
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchMovies()).unwrap();
+      } catch (err) {
+        toast({
+          title: "Failed to load movies",
+          description:
+            "Please refresh the page and check your internet connection!",
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      }
+    };
+
+    fetchData();
+  }, [dispatch, toast]);
+
+  let content;
+
+  if (moviesStatus === "succeeded") {
+    content = (
       <SimpleGrid spacing={4} columns={{ sm: 1, md: 3, lg: 4 }}>
         {movies.map((movie) => (
           <MovieCard
@@ -24,6 +52,27 @@ function MovieList() {
           />
         ))}
       </SimpleGrid>
+    );
+  } else if (moviesStatus === "loading") {
+    content = (
+      <Flex alignItems="center" justifyContent="center" minH="100vh">
+        <Spinner text="Loading..." />
+      </Flex>
+    );
+  } else if (moviesStatus === "failed") {
+    content = (
+      <Flex alignItems="center" justifyContent="center" minH="100vh">
+        {moviesError}
+      </Flex>
+    );
+  }
+
+  return (
+    <>
+      <Heading textAlign="center" size="xl" mb={4}>
+        Trending Movies
+      </Heading>
+      {content}
     </>
   );
 }
