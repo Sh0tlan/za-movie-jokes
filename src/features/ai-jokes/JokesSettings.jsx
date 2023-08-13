@@ -20,14 +20,14 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ruleAdded, ruleRemove } from "./aiJokesSlice";
+import { ruleAdded, ruleRemove, selectJokesRules } from "./aiJokesSlice";
 
 const initialData = { name: "", description: "" };
 
 function JokesSettings() {
   const dispatch = useDispatch();
   const [form, setForm] = useState(initialData);
-  const rules = useSelector((state) => state.aiJokes.rules);
+  const rules = useSelector(selectJokesRules);
 
   const handleRuleRemove = (ruleName) => {
     dispatch(ruleRemove(ruleName));
